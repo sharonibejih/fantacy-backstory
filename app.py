@@ -2,14 +2,16 @@ import streamlit as st
 from services.backstoryGenerarator import create_backstory_prompt
 from services.imageGenerator import create_dalle_prompt
 from utils import *
+import json
 
+chat_history = []
 
 st.set_page_config(page_title="Fantasy Character Backstory Creator", layout="wide")
 
 st.title("🧙 Fantasy Character Backstory Creator")
 st.write("Create a unique fantasy character and generate a backstory along with an image!")
 
-# Collect character details from the user
+# get character details from the user
 st.sidebar.header("Character Details")
 name = st.sidebar.text_input("Character Name", "Elara Windwhisper")
 species = st.sidebar.selectbox("Species/Race", ["Elf", "Human", "Dwarf", "Orc", "Dragon", "Other"])
@@ -24,7 +26,7 @@ magic_abilities = st.sidebar.text_input("Magic or Special Abilities", "Communica
 fear_secret = st.sidebar.text_area("Fear or Secret", "afraid of failing her people and living in her mother’s shadow")
 appearance_details = st.sidebar.text_area("Appearance Details", "long silver hair, bright green eyes, leather armor with leaf patterns")
 
-# Button to generate backstory and image
+# upon submission, generate backstory and image
 if st.sidebar.button("Generate Character"):
     character_details = {
         'Name': name,
@@ -43,7 +45,7 @@ if st.sidebar.button("Generate Character"):
     # Generate image
     image_prompt = create_dalle_prompt(character_details)
     st.subheader("Character Image")
-    image = generate_image(image_prompt)
+    image, image_url = generate_image(image_prompt)
     st.image(image, caption=f"{name} - {species}", use_column_width=True)
 
     # Generate backstory
@@ -51,6 +53,19 @@ if st.sidebar.button("Generate Character"):
     backstory = generate_backstory(backstory_prompt)
     st.subheader("Character Backstory")
     st.write(backstory)
+
+    history = {
+        "user_input_character_details": character_details,
+        "generated_character_story": backstory,
+        "generated_character_image_url": image_url
+    }
+
+    chat_history.append(history)
+
+    # append chat_history to text file
+    with open('artifacts/chat_history.txt', 'a') as fout:
+        json.dump(chat_history, fout, indent=4)
+        fout.write('\n')
 
     # st.success("Character backstory and image generated successfully!")
 

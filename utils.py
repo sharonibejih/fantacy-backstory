@@ -35,4 +35,4 @@ def generate_image(prompt):
     )
     image_url = response.data[0].url
     image = Image.open(requests.get(image_url, stream=True).raw)
-    return image
+    return image, image_url
